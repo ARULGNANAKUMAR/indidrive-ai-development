@@ -1,0 +1,70 @@
+# IndiDrive AI — Phase 6.5 | Unified Road Understanding State Configuration
+# ==========================================================================
+# All thresholds for RoadUnderstandingEngine are defined here.
+# The engine reads these via RoadUnderstandingStateConfig.from_dict().
+# Do NOT hard-code these values in the engine.
+#
+# Timestamp tolerances are derived from typical sensor fusion cycle rates:
+#   - Camera: 30 Hz → frame period ~33ms
+#   - LiDAR:  10 Hz → frame period 100ms
+#   - Fusion: nominally synchronised within one LiDAR frame (~100ms)
+# A 500ms tolerance allows for one full LiDAR scan + pipeline latency.
+
+timestamp:
+  # Maximum allowed skew across upstream module timestamps (seconds).
+  # Exceeding this → TimestampConsistency.STALE, uncertainty penalty applied.
+  max_timestamp_skew_seconds: 0.5
+
+  # Skew below which consistency is ACCEPTABLE (minor, not STALE).
+  extended_timestamp_skew_seconds: 0.2
+
+geometry:
+  # How far outside the Phase 6.1 road boundary a Phase 6.2 lane boundary
+  # point may be before triggering lane_outside_road_boundary warning (metres).
+  lane_boundary_road_boundary_tolerance_m: 0.5
+
+  # Lane-implied road width may not exceed this multiple of the observed
+  # road width before a road_width_conflict is raised.
+  road_width_conflict_factor: 1.5
+
+  # Physically plausible lane width range (metres).
+  # Covers everything from a single bicycle track to a wide highway lane.
+  min_physical_lane_width_m: 1.5
+  max_physical_lane_width_m: 7.0
+
+  # Physically plausible road width range (metres).
+  min_physical_road_width_m: 2.0
+  max_physical_road_width_m: 40.0
+
+confidence:
+  # Weights must sum to 1.0.  Phase 6.1 (drivable area) carries the highest
+  # weight as it provides foundational geometric safety information.
+  weight_drivable_area: 0.35
+  weight_lane_structure: 0.30
+  weight_road_anomaly: 0.20
+  weight_indian_context: 0.15
+
+  # Confidence penalty applied per missing upstream module.
+  confidence_penalty_module_missing: 0.10
+
+  # Confidence penalty applied per DEGRADED/ERROR upstream module.
+  confidence_penalty_sensor_degraded: 0.05
+
+  # Confidence penalty when any geometry/timestamp conflict is detected.
+  confidence_penalty_consistency_conflict: 0.10
+
+uncertainty:
+  # Added to overall_uncertainty when timestamps are STALE, MISSING, or INVALID.
+  uncertainty_penalty_timestamp_stale: 0.20
+
+  # Added to overall_uncertainty when geometry_consistency is CONFLICT.
+  uncertainty_penalty_geometry_conflict: 0.15
+
+  # Added to overall_uncertainty per UNAVAILABLE upstream module.
+  uncertainty_penalty_module_missing: 0.10
+
+  # Added to overall_uncertainty per DEGRADED/ERROR upstream module.
+  uncertainty_penalty_sensor_degraded: 0.10
+
+  # Added to overall_uncertainty per consistency warning string.
+  uncertainty_penalty_consistency_warning: 0.05

@@ -1,0 +1,255 @@
+# IndiDrive AI — Phase 8.1 | Reasoning Configuration
+# =====================================================
+# All thresholds governing situation assessment and risk reasoning.
+# Safe defaults suitable for Indian road conditions.
+# Unknown keys are silently ignored for forward-compatibility.
+
+config_version: "8.1"
+
+# --- TTC band thresholds (seconds) ---
+# Objects with TTC below each threshold fall into that band.
+ttc_immediate_s: 1.5        # IMMEDIATE: highest urgency
+ttc_near_s: 3.0             # NEAR_TERM: significant attention
+ttc_moderate_s: 6.0         # MODERATE: monitor; beyond = DISTANT
+
+# --- Hazard priority weights [0, 1] (must sum to ~1.0) ---
+weight_collision_likelihood: 0.35
+weight_ttc: 0.30
+weight_distance: 0.15
+weight_predicted_conflict: 0.10
+weight_vulnerability: 0.10
+
+# --- Distance thresholds (metres) ---
+distance_critical_m: 5.0    # within this → critical proximity
+distance_near_m: 15.0       # within this → near
+distance_relevant_m: 50.0   # beyond this → low relevance
+
+# --- Road width thresholds (metres) ---
+narrow_road_width_m: 4.5    # < this → NARROW
+very_narrow_road_width_m: 3.0  # < this → VERY_NARROW
+
+# --- Complexity thresholds ---
+complexity_high_hazard_count: 4     # hazards at/above → complexity HIGH
+complexity_very_high_hazard_count: 8  # hazards at/above → VERY_HIGH
+# Traffic density values that contribute to complexity elevation:
+complexity_dense_traffic_density:
+  - HIGH
+  - VERY_HIGH
+
+# --- Risk state thresholds ---
+critical_ttc_s: 1.5         # TTC at/below → CRITICAL reasoning state
+high_risk_min_count: 1      # HIGH/CRITICAL hazards at/above → HIGH_RISK
+caution_hazard_count: 2     # total hazards at/above → CAUTION
+attention_hazard_count: 1   # any hazard → ATTENTION
+
+# --- Uncertainty thresholds ---
+uncertainty_high_threshold: 0.6     # above this → HIGH uncertainty level
+uncertainty_very_high_threshold: 0.8  # above this → VERY_HIGH
+completeness_full_threshold: 0.85   # WM completeness above this → FULL
+completeness_partial_threshold: 0.40  # above this → PARTIAL, else MINIMAL
+
+# --- Confidence thresholds ---
+confidence_high_threshold: 0.7
+confidence_low_threshold: 0.3
+
+# --- Collection bounds ---
+max_hazards: 32             # maximum hazard entries in snapshot
+max_interactions: 16        # maximum interaction entries
+max_top_hazards: 8          # maximum entries in top_hazards list
+max_reason_codes: 12        # maximum reason codes per list
+
+# --- Staleness ---
+stale_data_threshold_s: 1.5  # WM older than this → stale data present
+
+# --- Compound hazard detection ---
+compound_min_hazard_types: 3   # distinct categories to classify as COMPOUND
+compound_min_total_hazards: 2  # total hazards needed before compound check
+
+# --- Interaction detection ---
+interaction_min_confidence: 0.3  # minimum confidence to report interaction
+
+# ---------------------------------------------------------------------------
+# Phase 8.2 — Behavior & Interaction Reasoning Configuration
+# ---------------------------------------------------------------------------
+
+# --- Motion classification thresholds ---
+behavior_stationary_speed_threshold_ms: 0.3  # m/s below → STATIONARY
+behavior_approaching_speed_threshold_ms: 0.5  # closing speed above → APPROACHING
+behavior_lateral_motion_ratio_threshold: 0.30 # lat/total ratio above → CROSSING
+behavior_turning_yaw_threshold_rads: 0.15     # yaw rate above → TURNING (rad/s)
+behavior_acceleration_threshold_ms2: 0.5      # accel above → ACCELERATING (m/s²)
+behavior_deceleration_threshold_ms2: 0.5      # decel below → DECELERATING
+behavior_stopping_speed_threshold_ms: 2.0     # speed below + decel → STOPPING
+
+# --- Confidence thresholds ---
+behavior_interaction_min_confidence: 0.25     # min confidence to report interaction
+behavior_intent_min_confidence: 0.30          # min confidence to report intent
+behavior_low_confidence_threshold: 0.3        # object confidence below → LOW_CONF evidence
+
+# --- Distance thresholds (metres) ---
+behavior_max_interaction_distance_m: 60.0     # max range for interaction detection
+behavior_proximity_threshold_m: 8.0           # below → CLOSE_PROXIMITY evidence
+behavior_road_context_distance_m: 40.0        # road context interaction range
+behavior_narrow_road_width_m: 4.5             # below → narrow road context
+
+# --- Collection bounds ---
+behavior_max_behavior_entities: 20            # max entities to classify
+behavior_max_behavior_interactions: 24        # max interaction entries
+behavior_max_behavior_hypotheses: 3           # max competing hypotheses per entity
+behavior_max_intent_hypotheses: 20            # max total intent hypotheses
+behavior_max_intent_per_entity: 2             # max intent hypotheses per entity
+behavior_max_compound_situations: 6           # max compound situations
+behavior_max_compound_entities: 6             # max entities per compound situation
+behavior_max_graph_nodes: 20                  # max interaction graph nodes
+behavior_max_graph_edges: 30                  # max interaction graph edges
+behavior_max_evidence_items: 8                # max evidence items per entry
+behavior_max_dominant_interactions: 5         # max dominant interactions
+
+# --- Compound hazard detection ---
+behavior_compound_min_hazard_count: 2         # min hazards for compound analysis
+
+# --- Complexity scoring weights ---
+behavior_complexity_weight_interaction_count: 0.30
+behavior_complexity_weight_compound_count: 0.25
+behavior_complexity_weight_severity: 0.25
+behavior_complexity_weight_uncertainty: 0.20
+
+# --- Staleness ---
+behavior_stale_data_threshold_s: 1.5          # data age above → stale
+
+# =============================================================================
+# Phase 8.3 — Decision & Action Abstraction Configuration
+# =============================================================================
+# All keys use the prefix 'abstraction_' to avoid conflicts with 8.1 / 8.2.
+# Unknown keys are silently ignored for forward-compatibility.
+
+# --- TTC urgency thresholds (seconds) ---
+abstraction_ttc_immediate_s: 1.5      # TTC below this → IMMEDIATE urgency
+abstraction_ttc_high_s: 3.0           # TTC below this → HIGH urgency
+abstraction_ttc_medium_s: 6.0         # TTC below this → MEDIUM urgency; else LOW
+
+# --- Collision likelihood thresholds ---
+abstraction_collision_likelihood_critical: 0.75
+abstraction_collision_likelihood_high: 0.50
+abstraction_collision_likelihood_medium: 0.25
+
+# --- Priority weights [0, 1] ---
+abstraction_priority_weight_collision_likelihood: 0.30
+abstraction_priority_weight_ttc: 0.25
+abstraction_priority_weight_severity: 0.20
+abstraction_priority_weight_vulnerability: 0.15
+abstraction_priority_weight_uncertainty: 0.10
+
+# --- Road width thresholds (metres) ---
+abstraction_narrow_road_width_m: 4.5
+abstraction_very_narrow_road_width_m: 3.0
+
+# --- Uncertainty thresholds ---
+abstraction_uncertainty_high_threshold: 0.6
+abstraction_uncertainty_degraded_threshold: 0.85
+abstraction_confidence_low_threshold: 0.3
+abstraction_completeness_degraded_threshold: 0.25
+
+# --- Module degradation flags ---
+abstraction_sensor_degradation_triggers_degraded: true
+abstraction_prediction_unavailable_triggers_uncertainty: true
+abstraction_road_info_unavailable_triggers_uncertainty: true
+
+# --- Normal progress conditions ---
+abstraction_normal_progress_max_hazard_count: 0
+abstraction_normal_progress_max_uncertainty: 0.4
+abstraction_normal_progress_min_world_completeness: 0.5
+abstraction_normal_progress_allowed_risk_levels:
+  - LOW
+  - UNKNOWN
+
+# --- Collection bounds ---
+abstraction_max_requirements: 12
+abstraction_max_relationships: 16
+abstraction_max_reason_codes: 10
+abstraction_max_affected_entities: 8
+
+# --- Intersection / merge context triggers ---
+abstraction_intersection_context_triggers:
+  - INTERSECTION
+  - JUNCTION
+  - ROUNDABOUT
+abstraction_merge_context_triggers:
+  - MERGE
+  - HIGHWAY_MERGE
+  - LANE_MERGE
+
+# --- Staleness ---
+abstraction_stale_data_threshold_s: 1.5
+
+# --- Relationship detection ---
+abstraction_detect_relationships: true
+
+# =============================================================================
+# Phase 8.4 — Decision Arbitration & Safety Gate Configuration
+# =============================================================================
+# All keys use the prefix 'arbitration_' to avoid conflicts with 8.1/8.2/8.3.
+# Unknown keys are silently ignored for forward-compatibility.
+
+arbitration_enabled: true
+arbitration_deterministic: true
+
+# --- Collection bounds ---
+arbitration_max_active_requirements: 12
+arbitration_max_constraints: 24
+arbitration_max_reason_codes: 16
+arbitration_max_conflicts: 16
+
+# --- Temporal validity thresholds (milliseconds) ---
+arbitration_aging_threshold_ms: 800.0
+arbitration_stale_threshold_ms: 1500.0
+arbitration_critical_stale_threshold_ms: 3000.0
+
+# --- Safety gate: CRITICAL ---
+arbitration_critical_urgency_values:
+  - IMMEDIATE
+arbitration_critical_severity_values:
+  - CRITICAL
+arbitration_critical_requirement_types:
+  - COLLISION_AVOIDANCE_REQUIRED
+  - HANDLE_TRAJECTORY_CONFLICT
+  - HANDLE_VULNERABLE_USER
+
+# --- Safety gate: HIGH_ALERT ---
+arbitration_high_alert_priority_threshold: 0.70
+arbitration_high_alert_severity_values:
+  - CRITICAL
+  - HIGH
+arbitration_high_alert_urgency_values:
+  - IMMEDIATE
+  - HIGH
+arbitration_high_alert_requirement_types:
+  - COLLISION_AVOIDANCE_REQUIRED
+  - HANDLE_TRAJECTORY_CONFLICT
+  - HANDLE_VULNERABLE_USER
+  - HANDLE_ROAD_HAZARD
+
+# --- Safety gate: RESTRICTED ---
+arbitration_restricted_uncertainty_threshold: 0.65
+arbitration_restricted_hard_constraint_count: 1
+arbitration_restricted_completeness_threshold: 0.40
+
+# --- Safety gate: DEGRADED ---
+arbitration_degraded_completeness_threshold: 0.25
+arbitration_degraded_uncertainty_threshold: 0.85
+
+# --- Safety gate: CAUTION ---
+arbitration_caution_hazard_priority_min: 0.20
+arbitration_caution_uncertainty_threshold: 0.40
+
+# --- Hard constraint classification ---
+arbitration_hard_constraint_requirement_types:
+  - COLLISION_AVOIDANCE_REQUIRED
+  - HANDLE_TRAJECTORY_CONFLICT
+  - HANDLE_VULNERABLE_USER
+  - DEGRADED_OPERATION
+arbitration_hard_constraint_severity_values:
+  - CRITICAL
+arbitration_hard_constraint_urgency_values:
+  - IMMEDIATE
+arbitration_hard_constraint_if_safety_critical: true

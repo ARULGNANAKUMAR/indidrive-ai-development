@@ -1,0 +1,48 @@
+# IndiDrive AI — System Configuration
+# Phase 0: values here reflect what the current codebase actually reads
+# or supports today. Nothing below implies functionality that does not
+# yet exist — see docs/PROJECT_AUDIT.md for full component status.
+
+project_name: "IndiDrive AI — Adaptive Path Planning and Collision Avoidance for Unstructured Indian Roads"
+version: "5.0.0"          # matches api/server.py FastAPI app version
+phase: "phase0_foundation"
+
+# environment: "development" | "staging" | "production"
+# Informational only in Phase 0 — no code branches on this yet.
+environment: "development"
+
+# mode: default operating mode used by core/modes.py at startup when
+# INDIDRIVE_MODE is not set in the environment. See config/planner_config.yaml
+# and docs/PROJECT_AUDIT.md for how this differs from the existing
+# core/deployment.py "deployment mode" (demo/research/training/benchmark/offline),
+# which is a separate, pre-existing concept kept unchanged in Phase 0.
+mode: "OFFLINE"
+
+debug: false
+logging_level: "INFO"     # DEBUG | INFO | WARNING | ERROR | CRITICAL
+
+server:
+  host: "0.0.0.0"
+  port: 8004               # matches run.sh default PORT
+  product_ui_path: "/"
+  legacy_simulator_path: "/simulator"
+  api_docs_path: "/api/docs"
+
+# CORS origins used by the legacy Flask simulator (legacy_simulator/server.py).
+# Mirrors the ALLOWED_ORIGINS environment variable already read there;
+# this file documents the default, it does not yet override it.
+cors:
+  allowed_origins:
+    - "http://localhost:5000"
+    - "http://127.0.0.1:5000"
+    - "http://localhost:3000"
+    - "http://localhost:8004"
+
+directories:
+  config: "config"
+  docs: "docs"
+  logs: "logs"
+  data: "data"
+  models: "models"
+  tests: "tests"
+  storage: "storage"        # pre-existing runtime data root (datasets/models/echo/benchmarks/reports)

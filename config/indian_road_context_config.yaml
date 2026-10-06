@@ -1,0 +1,123 @@
+# IndiDrive AI — Phase 6.4 | Indian-Road Context Fusion Configuration
+# =========================================================
+# All thresholds used by IndianRoadContextEngine are listed here.
+# The engine reads this at construction time via IndianRoadContextConfig.from_dict().
+# Do NOT hard-code these values in the engine — always read from config.
+#
+# Width thresholds are derived from Indian road standards (IRC SP 43, NH/SH geometry)
+# and adjusted for practical sensor uncertainty at typical AV sensor ranges.
+
+road_width:
+  # Metres below which a road is classified as VERY_NARROW
+  very_narrow_threshold_m: 3.5
+  # Metres below which a road is classified as NARROW
+  narrow_threshold_m: 5.5
+  # Metres below which a road is classified as NORMAL
+  normal_threshold_m: 8.0
+  # Metres above which a road is classified WIDE (>= wide_threshold_m → VERY_WIDE)
+  wide_threshold_m: 12.0
+
+traffic_density:
+  # Nearby tracked/fused object counts used to classify density
+  # (objects within the sensor detection envelope, not absolute road volume)
+  very_low_max: 1     # 0–1 objects  → VERY_LOW
+  low_max: 3          # 2–3          → LOW
+  medium_max: 7       # 4–7          → MEDIUM
+  high_max: 14        # 8–14         → HIGH
+                      # 15+          → VERY_HIGH
+
+vru:
+  # Object classes counted as Vulnerable Road Users for VRUPresence
+  vru_classes:
+    - pedestrian
+    - bicycle
+    - cattle
+    - animal
+  # Minimum VRU count to upgrade PRESENT → MULTIPLE_PRESENT
+  multiple_threshold: 2
+
+# Object class group memberships used by traffic/roadside derivation
+animal_classes:
+  - cattle
+  - animal
+
+two_wheeler_classes:
+  - motorcycle
+  - scooter
+  - bicycle
+
+auto_rickshaw_classes:
+  - auto_rickshaw
+
+heavy_vehicle_classes:
+  - bus
+  - truck
+  - tractor
+
+road_type:
+  # Evidence thresholds for highway-like classification
+  highway_min_width_m: 9.0
+  highway_min_lanes: 2
+
+  # Evidence thresholds for market-like classification
+  market_min_object_count: 4
+  market_pedestrian_min: 2
+
+  # Width at or below which "narrow" is accepted as road-type evidence
+  narrow_max_width_m: 5.5
+
+  # Lane count at or below which "village/single-lane" evidence applies
+  village_max_lane_count: 1
+
+complexity:
+  # Weighted contributions to the road-complexity score.
+  # Increase a weight to make that factor more influential.
+  w_unmarked: 1.2
+  w_narrow: 0.9
+  w_anomaly_count_per_anomaly: 0.4
+  w_anomaly_count_cap: 4.0         # max total contribution from anomaly count
+  w_high_severity_per: 0.6
+  w_high_severity_cap: 2.4
+  w_high_traffic: 0.8
+  w_heterogeneous_traffic: 0.5
+  w_vru: 0.7
+  w_intersection: 0.6
+  w_complex_intersection: 1.0
+  w_weak_boundaries: 0.8
+  w_weak_lane_structure: 0.5
+  w_construction: 0.9
+  w_sensor_degraded: 0.4
+
+  # Score thresholds for complexity enum mapping
+  medium_threshold: 1.5      # score >= 1.5 → MEDIUM
+  high_threshold: 3.5        # score >= 3.5 → HIGH
+  very_high_threshold: 5.5   # score >= 5.5 → VERY_HIGH
+
+stability:
+  # Consecutive frames with the same road_type required for STABLE classification
+  stable_frame_count: 3
+  # Rolling history window (number of frames kept for stability analysis)
+  history_size: 8
+
+confidence:
+  # Base confidence regardless of available sensors
+  base: 0.5
+  # Additive bonuses when each upstream phase is available and OK
+  phase61_ok_bonus: 0.15
+  phase62_ok_bonus: 0.15
+  phase63_ok_bonus: 0.10
+  fws_ok_bonus: 0.10
+  # Penalty applied when any upstream sensor reports degraded status
+  degraded_penalty: 0.20
+  # Penalty per unresolved evidence conflict
+  conflict_penalty: 0.10
+
+boundary_confidence:
+  # Phase 6.1 boundary confidence below this threshold → weak_boundaries = True
+  weak_threshold: 0.35
+
+market_context:
+  # Minimum number of distinct roadside activity types required before
+  # classifying as high-activity / market-like context
+  min_activity_types: 3
+  min_object_count: 4

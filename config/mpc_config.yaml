@@ -1,0 +1,92 @@
+# IndiDrive AI — Phase 10.3 MPC Controller Configuration
+#
+# All physical values are in SI units:
+#   Angles      : radians
+#   Distances   : metres
+#   Velocities  : m/s
+#   Accelerations: m/s²
+#   Time        : seconds
+#
+# Architecture position:
+#   Phase 9.6 Final Planner → Phase 10.1 Vehicle Dynamics
+#       → Phase 10.2 Trajectory Tracking → Phase 10.3 MPC Controller Core
+#       → Phase 10.4 Steering / Speed Control (future)
+#
+# -------------------------------------------------------------------------
+# NOTE: first_steering_input / first_acceleration_input in MPCSnapshot are
+# mathematical MPC optimisation variables.  They are NOT actuator commands.
+# Phase 10.4 converts them to actuator-level commands.
+# -------------------------------------------------------------------------
+
+mpc:
+  # --- Prediction horizon ---
+  # prediction_horizon : number of discrete timesteps N
+  # dt                 : timestep duration (s)
+  # horizon_duration   : N * dt = 1.0 s (effective look-ahead)
+  prediction_horizon: 10
+  dt: 0.1
+
+  # --- Solver ---
+  # steering_samples     : uniform grid points along steering range per step
+  # acceleration_samples : uniform grid points along acceleration range per step
+  # max_iterations       : refinement rounds (narrows grid around best candidate)
+  # solver_strategy      : GRID_SEARCH (default) or ITERATIVE
+  # max_reference_age_s  : reject reference trajectories older than this
+  max_iterations: 5
+  steering_samples: 7
+  acceleration_samples: 5
+  solver_strategy: GRID_SEARCH
+  max_reference_age_s: 2.0
+
+  # --- Cost function weights ---
+  # All weights must be ≥ 0.  Set to 0.0 to disable a cost component.
+  #
+  # tracking weights (applied each step, including terminal):
+  #   cross_track   : lateral deviation from path (m) — primary tracking objective
+  #   along_track   : longitudinal deviation from waypoint (m)
+  #   heading       : yaw error vs reference yaw (rad)
+  #   speed         : velocity error vs reference velocity (m/s)
+  #
+  # control effort weights (discourage large control magnitudes):
+  #   steering      : steering angle² cost
+  #   acceleration  : acceleration² cost
+  #
+  # control rate weights (encourage smooth control):
+  #   steering_rate     : Δsteering² cost
+  #   acceleration_rate : Δacceleration² cost
+  #
+  # terminal weight (multiplier on tracking cost at step N only):
+  #   terminal      : scale factor; 0.0 = disabled
+  weights:
+    cross_track: 2.0
+    along_track: 0.5
+    heading: 1.5
+    speed: 1.0
+    steering: 0.1
+    acceleration: 0.1
+    steering_rate: 0.5
+    acceleration_rate: 0.2
+    terminal: 2.0
+
+  # --- Control and state limits ---
+  # Must be consistent with Phase 10.1 VehicleParameters.
+  # These are MPC constraint limits (not bicycle-model saturation limits).
+  #
+  # Steering (rad):
+  #   ±35° ≈ ±0.610 rad
+  # Steering rate (rad/s):
+  #   0.7 rad/s ≈ ~40°/s — moderate actuator rate
+  # Acceleration (m/s²):
+  #   max +4.0 (moderate forward acceleration)
+  #   min -8.0 (comfortable braking)
+  # Velocity (m/s):
+  #   max 33.33 ≈ 120 km/h
+  #   min 0.0   (vehicle stopped)
+  limits:
+    steering_min: -0.610
+    steering_max:  0.610
+    steering_rate_max: 0.700
+    acceleration_min: -8.0
+    acceleration_max:  4.0
+    velocity_min: 0.0
+    velocity_max: 33.33

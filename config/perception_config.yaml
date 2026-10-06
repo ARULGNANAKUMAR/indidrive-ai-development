@@ -1,0 +1,80 @@
+# IndiDrive AI — Perception Configuration (Phase 2)
+# Extends Phase 0/1 configuration. Loaded by core/perception/perception_manager.py.
+# No trained detection/segmentation/road-damage model ships with this
+# repository — backends below resolve honestly to NOT_CONFIGURED until
+# real weights are registered via core/models/manager.py or a path here.
+
+perception:
+
+  enabled: true
+
+  camera:
+    enabled: true
+    backend: "AUTO"          # AUTO | YOLO | ONNX | OPENCV_DNN | CUSTOM | NONE
+    confidence_threshold: 0.40
+    nms_threshold: 0.45
+    input_width: 640
+    input_height: 640
+    # Optional explicit overrides (AUTO otherwise checks core/models/manager.py's
+    # active 'detector' role model):
+    # weights_path: "models/perception/vision/yolo11n.pt"
+
+  lidar:
+    enabled: true
+    min_range_m: 1.0
+    max_range_m: 80.0
+    min_height_m: -2.5
+    max_height_m: 3.5
+    ground_removal: true
+    ground_cell_size_m: 1.0
+    ground_margin_m: 0.25
+    clustering: true
+    cluster_cell_size_m: 0.5
+    min_cluster_points: 4
+
+  radar:
+    enabled: false            # no radar hardware/driver exists in this project (see sensor_config.yaml)
+
+  road:
+    enabled: true
+    backend: "CLASSICAL"      # CLASSICAL (baseline heuristic) | SEGMENTATION (requires a registered model) | NONE
+
+  road_damage:
+    enabled: true
+    backend: "NOT_CONFIGURED" # NOT_CONFIGURED until a trained pothole/crack/debris model is registered
+
+  # Phase 6.1 addition — additive only, does not change how road/road_damage
+  # above are read. Drivable-area + road-boundary geometry understanding;
+  # see core/perception/road_understanding.py and docs/PHASE_6_1_ROAD_UNDERSTANDING.md.
+  road_understanding:
+    enabled: true
+    minimum_confidence: 0.25        # below this, a would-be OK cycle is downgraded to PARTIAL
+    forward_distances_m: [0, 10, 20, 30]   # road-width profile sample points
+    longitudinal_bin_m: 3.0         # +/- half-bin (m) around each sample distance
+    min_points_per_sample: 5        # below this point count, that side/sample is left UNAVAILABLE
+    max_lateral_search_m: 15.0      # ignore points further than this to either side
+    max_plausible_width_m: 40.0     # wider than this is rejected as INVALID geometry, not reported
+    max_sensor_staleness_s: 1.0     # matches health.stale_after_s above
+
+  # Phase 6.2 addition — lane & road-structure understanding.
+  # Consumes Phase 6.1 road_understanding output to produce per-lane
+  # geometry, centrelines, lane count, width, heading, and marking status.
+  # Does NOT modify road_understanding above.
+  lane_structure:
+    enabled: true
+    minimum_confidence: 0.25        # below this, status is DEGRADED
+    forward_distances_m: [0, 10, 20, 30]   # x-samples for lane width profile
+    max_forward_distance_m: 30.0    # furthest x used in lane geometry output
+    allow_unmarked_inference: true  # infer structural corridor on unmarked roads
+    min_road_width_for_lane_split_m: 5.5   # narrower than this -> single lane
+    default_single_lane_width_m: 3.5       # assumed usable width on narrow roads
+    narrow_road_threshold_m: 4.5           # roads narrower than this -> SINGLE_LANE hint
+    min_plausible_lane_width_m: 1.5        # below this -> width sample rejected
+    max_plausible_lane_width_m: 6.0        # above this -> width sample rejected
+    max_road_understanding_staleness_s: 1.0 # matches road_understanding staleness
+
+  health:
+    stale_after_s: 1.0
+
+  benchmark:
+    default_iterations: 50

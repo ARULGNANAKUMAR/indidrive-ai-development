@@ -1,0 +1,200 @@
+# IndiDrive AI — Planner Configuration
+# Phase 0: documents the existing planner (SimAI.plan() in
+# legacy_simulator/server.py) without changing its behavior. This is a
+# deterministic, simulation-only lateral-offset path generator, NOT
+# Hybrid A*, MPC, or any learned planner — those belong to a later phase.
+
+planner:
+  algorithm: "lateral_offset_sampling"   # honest name for the current approach
+  status: "simulation_only"
+
+  # Lateral offsets (meters) sampled around the straight-line start->goal
+  # path. Matches the literal list in SimAI.plan().
+  lateral_offsets_m: [0, -2.5, 2.5, -5, 5]
+
+  # Number of interpolated waypoints per candidate path (SimAI.plan()
+  # uses range(11) -> 11 waypoints, t = i/10).
+  waypoints_per_path: 11
+
+  # Obstacle proximity radius (meters) used to penalize a waypoint in
+  # SimAI.plan(): risk increases for any obstacle within this distance.
+  obstacle_influence_radius_m: 4.0
+
+  # Path status thresholds from SimAI.plan().
+  status_thresholds:
+    safe_below: 0.30
+    warning_below: 0.70
+    # risk >= warning_below -> "blocked"
+
+  # Replanning trigger — mirrors safety_limits.replanning_risk_threshold
+  # in config/vehicle_config.yaml; kept here too since it's read directly
+  # off the planner's own output today. Do not let these two drift apart
+  # without updating both.
+  replanning_risk_threshold: 0.68
+
+  max_obstacles_considered: 20   # SimAI.plan() truncates obstacles[:20]
+
+# Collision-avoidance decision layer (SimAI.decide() in
+# legacy_simulator/server.py). Distinct from the path planner above —
+# this picks a discrete action (Continue/Slow Down/Brake/...), it does
+# not generate trajectories.
+decision_layer:
+  algorithm: "risk_weighted_action_selection"
+  status: "simulation_only"
+  actions:
+    - "Continue"
+    - "Slow Down"
+    - "Brake"
+    - "Emergency Brake"
+    - "Steer Left"
+    - "Steer Right"
+    - "Stop"
+    - "Overtake"
+    - "Re-route"
+
+# ---------------------------------------------------------------------------
+# Phase 9.2 — Candidate Path Generation
+# ---------------------------------------------------------------------------
+# All configurable values for the CandidatePathGenerator.
+# Do NOT hardcode these in the generator itself.
+phase_9_2:
+  enabled: true
+
+  # Maximum total candidate paths returned per cycle.
+  # 5 = center + 2 slight + 2 moderate; suitable for urban Indian roads.
+  max_candidates: 5
+
+  # Waypoint sampling interval along the planning horizon (metres).
+  # 2.0 m → ~25 waypoints over the default 50 m horizon.
+  sample_resolution_m: 2.0
+
+  # Nominal lateral offsets from the reference centreline (metres).
+  # Positive = left (+Y direction), negative = right (-Y direction).
+  # Center, slight-left, slight-right, moderate-left, moderate-right.
+  lateral_offsets_m: [0.0, 0.75, -0.75, 1.5, -1.5]
+
+  # Minimum path length to be accepted as a valid candidate (metres).
+  minimum_path_length_m: 5.0
+
+  # Maximum path length cap — clips paths even if the horizon is longer (metres).
+  maximum_path_length_m: 60.0
+
+  # Waypoint count bounds per candidate.
+  min_waypoints: 3
+  max_waypoints: 150
+
+  # Approximate vehicle half-width for boundary clearance margin (metres).
+  vehicle_half_width_m: 1.0
+
+  # Maximum allowed lateral step between consecutive waypoints (metres).
+  # Larger jumps flag PARTIALLY_VALID geometry.
+  max_lateral_jump_m: 1.0
+
+  # Validation flags.
+  boundary_check_enabled: true
+  drivable_space_check_enabled: true
+
+  # Guarantee deterministic output ordering.
+  deterministic: true
+
+# ---------------------------------------------------------------------------
+# Phase 9.4 — Adaptive Replanning
+# ---------------------------------------------------------------------------
+phase_9_4:
+  enabled: true
+
+  # Risk thresholds
+  risk_escalation_delta_threshold: 0.20
+  critical_risk_threshold: 0.80
+  risk_noise_floor: 0.02
+  risk_deescalation_replan: false
+
+  # TTC thresholds
+  ttc_critical_threshold_s: 2.0
+  ttc_delta_threshold_s: 1.0
+
+  # Path validity
+  min_acceptable_clearance_m: 0.3
+
+  # Object change thresholds
+  object_position_delta_threshold_m: 1.5
+  object_velocity_delta_threshold: 2.0
+  trajectory_deviation_threshold_m: 1.0
+  max_tracked_objects: 30
+  object_path_relevance_radius_m: 4.0
+
+  # Road structure
+  drivable_width_delta_threshold_m: 0.5
+
+  # Cooldown / debounce
+  cooldown_interval_s: 0.5
+  critical_bypasses_cooldown: true
+
+  # Hysteresis
+  risk_hysteresis_clear_threshold: 0.65
+  risk_hysteresis_trigger_threshold: 0.75
+
+  # Input freshness
+  max_input_age_s: 2.0
+  max_active_path_age_s: 3.0
+
+  # Uncertainty
+  uncertainty_escalation_threshold: 0.75
+
+  # Safety gate
+  safety_gate_replan_states:
+    - CAUTION
+    - HIGH_ALERT
+    - CRITICAL
+    - DEGRADED
+
+  # Hazard cleared policy
+  replan_on_hazard_cleared: false
+
+# ---------------------------------------------------------------------------
+# Phase 9.5 — Indian-Road Path Planning Adaptation
+# ---------------------------------------------------------------------------
+phase_9_5:
+  enabled: true
+
+  # Mode selection thresholds
+  lane_confidence_threshold: 0.60
+  unmarked_road_threshold: 0.30
+  mixed_traffic_density_threshold: "HIGH"
+
+  # Mode hysteresis
+  mode_persistence_frames: 3
+  lane_confidence_hysteresis_activate: 0.65
+  lane_confidence_hysteresis_deactivate: 0.40
+
+  # Narrow-road thresholds (metres)
+  very_narrow_road_width_m: 3.5
+  narrow_road_width_m: 5.0
+  approaching_narrow_width_m: 6.5
+
+  # Lateral freedom (metres)
+  default_max_lateral_offset_m: 1.5
+  narrow_road_max_lateral_offset_m: 0.4
+  very_narrow_max_lateral_offset_m: 0.0
+  highway_max_lateral_offset_m: 1.5
+  drivable_space_max_lateral_offset_m: 1.0
+  mixed_traffic_max_lateral_offset_m: 0.75
+  default_lateral_step_m: 0.75
+  narrow_road_lateral_step_m: 0.2
+
+  # Clearance margins (metres)
+  road_edge_margin_default_m: 0.5
+  road_edge_margin_narrow_m: 0.3
+  road_edge_margin_village_m: 0.4
+  obstacle_clearance_default_m: 0.5
+  obstacle_clearance_market_m: 0.8
+  vulnerable_user_margin_m: 1.0
+  cattle_clearance_margin_m: 1.5
+  wrong_side_margin_m: 0.8
+  pushcart_margin_m: 0.6
+
+  # Road anomaly handling
+  anomaly_avoidance_margin_m: 0.3
+
+  # Input freshness
+  max_context_age_s: 2.0

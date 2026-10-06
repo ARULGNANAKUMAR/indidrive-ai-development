@@ -1,0 +1,129 @@
+# IndiDrive AI — Phase 4A | Motion Prediction Configuration
+# ==============================================================
+# Starting defaults only, mirroring config/fusion_config.yaml's
+# approach — tune based on real recorded tracks once available.
+# Every parameter used by core/prediction/ is documented here.
+
+prediction:
+  enabled: true
+
+  # When true: no random tie-breaking or model selection, no simulated
+  # latency. The same recorded FusedWorldState sequence produces the
+  # same PredictedWorldState sequence (spec section 17).
+  deterministic: true
+
+  # Prediction horizons in seconds. Do not hardcode these in
+  # prediction_engine.py — always read from here (or the
+  # PredictionEngineConfig default that mirrors it).
+  horizons_s: [0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 5.0]
+
+  track_history:
+    # Bounded per-track buffer size (spec section 5) — never unlimited.
+    max_history: 20
+
+  kalman:
+    # Constant-velocity Kalman filter over [x, y, vx, vy].
+    process_noise: 1.0
+    measurement_noise: 0.5
+    initial_position_variance: 10.0
+    initial_velocity_variance: 100.0
+
+  model_selector:
+    # Above this yaw rate (rad/s), a track is considered "turning" -> CTRV.
+    yaw_rate_threshold: 0.05
+    # Above this |acceleration| (m/s^2), a track is considered "accelerating" -> CA.
+    accel_threshold: 0.5
+    # At/below this speed (m/s), always use CV (no basis to fit a turn/accel model).
+    stationary_speed: 0.1
+
+  lifecycle:
+    confirm_hits: 2            # consecutive hits for NEW -> ACTIVE
+    lost_after_misses: 2       # consecutive misses -> TEMPORARILY_LOST
+    stale_after_misses: 5      # consecutive misses -> STALE
+    delete_after_misses: 10    # consecutive misses -> DELETED (memory released)
+    confidence_decay: 0.3      # multiplicative confidence decay per missed cycle
+    confidence_recovery: 0.5   # fraction of the gap to 1.0 recovered per hit
+
+# Phase 5.1 — Object Memory Core
+object_memory:
+  # Set to false to disable all memory operations (read-only mode for other phases).
+  enabled: true
+
+  # Maximum number of memory entries before automatic cleanup is triggered.
+  # Must be a positive integer.  Increase for longer routes / more objects.
+  max_entries: 10000
+
+  # Maximum age of a memory entry in seconds.  Entries older than this are
+  # marked EXPIRED and removed during the next cleanup() call.
+  # Set to null (or omit) for unlimited age.
+  max_age_seconds: 600
+
+  # Seconds without an observation before an entry transitions NEW/ACTIVE -> STALE.
+  stale_after_seconds: 30.0
+
+# Phase 5.2 — Feature / Prototype Memory. Stores compact category-level
+# characteristics (geometry/shape/appearance/motion), never raw sensor
+# data. Independent capacity/quality controls from object_memory above.
+feature_memory:
+  # Set to false to disable all prototype-memory operations.
+  enabled: true
+
+  # Maximum number of distinct object-category prototypes retained.
+  max_prototypes: 2000
+
+  # Hard bound on descriptor vector length (shape/appearance). Keeps the
+  # feature representation compact for real-time memory usage.
+  max_feature_dimension: 64
+
+  # Observations below this confidence are not folded into a prototype.
+  minimum_confidence: 0.0
+
+  # Cleanup policy used when max_entries is reached.
+  # Options: OLDEST_FIRST | STALE_FIRST | LOWEST_CONFIDENCE
+  cleanup_policy: STALE_FIRST
+
+# Phase 8.3 — Scene Feature / Prototype Memory
+# ================================================
+# Controls the SceneFeatureMemory (similarity-routed prototype store).
+# Separate from feature_memory (Phase 5.2 PrototypeMemory) above.
+scene_feature_memory:
+  # Maximum number of ScenePrototypes retained.
+  max_prototypes: 500
+
+  # Minimum similarity to route an observation into an existing prototype.
+  # Below this → new prototype created.
+  similarity_threshold: 0.80
+
+  # EMA weight for new observation in prototype update.
+  # new_rep = alpha * new + (1 - alpha) * old
+  # Higher alpha → faster adaptation; lower alpha → more stable prototype.
+  update_alpha: 0.10
+
+  # Observations below this confidence are rejected.
+  minimum_confidence: 0.0
+
+  # When true, only compare observations against prototypes of the same
+  # object_type (e.g. motorcycle obs only matched against motorcycle protos).
+  object_type_strict: true
+
+  # Prototypes with mutual similarity >= this are eligible for merging
+  # during compact_memory() calls.
+  max_merge_similarity: 0.97
+
+  # Hard bound on feature descriptor vector length (reuses Phase 5.2 bound).
+  max_feature_dimension: 64
+
+  # Phase 8.3 normalizer reference ranges.
+  # These define the maximum expected value for each continuous feature.
+  normalizer:
+    max_length_m: 20.0
+    max_width_m: 5.0
+    max_height_m: 5.0
+    max_aspect_ratio: 10.0
+    max_speed_ms: 40.0
+    max_accel_ms2: 8.0
+    max_road_width_m: 30.0
+    max_object_count: 60
+    max_ttc_s: 12.0
+    max_distance_m: 100.0
+    max_closing_speed_ms: 30.0

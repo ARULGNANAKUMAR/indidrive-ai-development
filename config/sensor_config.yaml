@@ -1,0 +1,55 @@
+# IndiDrive AI — Sensor Configuration
+# Phase 0: mirrors the defaults already hard-coded in
+# core/carla_integration/sensors.py. These only take effect when a real
+# CARLA server is connected (core/carla_integration/connection.py) —
+# there is no standalone camera/LiDAR driver in this project outside
+# of CARLA. The 2D canvas simulator (legacy_simulator/) does not use
+# these at all; it works from synthetic "sensor_data" objects supplied
+# by the frontend, not real sensor drivers.
+
+camera:
+  enabled: true
+  status: "carla_only"   # only functions when attached to a live CARLA vehicle
+  resolution:
+    width: 800
+    height: 600
+  fov_degrees: 90.0
+
+lidar:
+  enabled: true
+  status: "carla_only"
+  channels: 32
+  range_m: 50.0
+  points_per_second: 100000
+  rotation_frequency_hz: 10.0
+
+radar:
+  enabled: false
+  status: "unavailable"   # not implemented anywhere in the current codebase
+  note: "No radar module exists in core/ or legacy_simulator/. Reserved for a future phase."
+
+# --- Phase 1: sensor pipeline additions (buffer / recording) ---
+# These control core/carla_integration/sensor_buffer.py and
+# sensor_recorder.py. They do not change camera/lidar/radar acquisition
+# parameters above — those remain the Phase 0 values.
+
+buffer:
+  capacity: 30                # frames retained per sensor (bounded, never unlimited)
+  overflow_policy: "DROP_OLDEST"   # DROP_OLDEST | KEEP_LATEST
+
+health:
+  stale_after_s: 1.0          # no frame for this long -> sensor marked OFFLINE
+  degraded_latency_ms: 200.0  # callback latency above this -> DEGRADED
+
+recording:
+  max_duration_s: 600         # stop recording safely after 10 minutes
+  max_frame_count: 50000
+  max_storage_bytes: 2147483648   # 2 GiB
+
+# Synthetic sensor input accepted by legacy_simulator/server.py's
+# /api/ai/predict endpoint (list of objects with distance/type/direction/etc,
+# supplied by the frontend simulator — not a physical sensor feed).
+synthetic_sensor_feed:
+  enabled: true
+  status: "simulation_only"
+  max_objects_per_request: 50   # SimAI.detect() truncates sensor_data[:50]

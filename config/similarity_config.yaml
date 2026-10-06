@@ -1,0 +1,58 @@
+# IndiDrive AI — Phase 5.3A | Similarity Engine Configuration
+# ================================================================
+# Configures feature-group weights for the SimilarityEngine.
+# These weights control the relative importance of each feature group
+# in the weighted similarity score.
+#
+# Rules:
+#   * All weights must be >= 0.0 and finite.
+#   * Setting a weight to 0.0 disables a feature group entirely.
+#   * The absolute magnitudes do not matter — only their ratios.
+#   * The engine renormalises over *available* features at runtime, so
+#     missing features (e.g. no appearance from a LiDAR-only frame)
+#     do not penalise the score.
+#
+# Phase 5.3A only.  Top-K retrieval, ranking, and search belong to
+# Phase 5.3B — do not add those here.
+
+similarity:
+  weights:
+    # Object type: treated as hard categorical match (1.0 or 0.0).
+    # Given a higher weight because a type mismatch (car vs pedestrian)
+    # should strongly suppress overall similarity even when geometry
+    # looks similar.
+    object_type: 2.0
+
+    # Bounding-box geometry (length, width, height).
+    geometry: 1.0
+
+    # Shape descriptors (aspect ratio, descriptor vector).
+    shape: 0.8
+
+    # Appearance descriptors (dominant colour, histograms).
+    # Lower weight than geometry/motion because appearance can vary
+    # significantly with lighting and sensor modality.
+    appearance: 0.6
+
+    # Motion characteristics (speed, heading, motion class).
+    motion: 1.2
+
+# Phase 5.3B — Experience Retrieval Configuration
+# =================================================
+# Controls the ExperienceRetriever behaviour.
+#
+# top_k:
+#   Maximum number of results returned per retrieve() call.
+#   Must be >= 1.
+#
+# minimum_similarity:
+#   Experiences with an overall_similarity below this threshold are
+#   excluded from results.  Must be in [0.0, 1.0].
+#   A similarity EQUAL TO this threshold is accepted.
+#
+# These values are configurable defaults; retrieve() accepts per-call
+# overrides for top_k and minimum_similarity.
+
+experience_retrieval:
+  top_k: 5
+  minimum_similarity: 0.60

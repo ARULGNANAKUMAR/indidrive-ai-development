@@ -1,0 +1,114 @@
+# IndiDrive AI — Phase 10.5 | Closed-Loop Pipeline Configuration
+# ================================================================
+# Integration-specific parameters only.
+# Do NOT duplicate planner / MPC / tracking / control parameters.
+# Those remain in their respective config files.
+
+closed_loop:
+  # Enable / disable the closed-loop pipeline.
+  enabled: true
+
+  # Control timestep (s).  Passed to tracking, MPC, and vehicle dynamics.
+  dt: 0.1
+
+  # Maximum cycles for run_closed_loop(). 0 = no limit.
+  max_cycles: 0
+
+  # MPC/planner snapshot age beyond which it is considered stale (s).
+  stale_timeout: 1.0
+
+  # Whether to reject cycles with inconsistent frame_ids.
+  strict_frame_validation: false
+
+  # Whether to reject cycles with inconsistent timestamps.
+  strict_timestamp_validation: false
+
+  # Default reference speed when not explicitly provided (m/s).
+  # Used by Phase 10.4 target-speed derivation when the planner
+  # does not embed speed in path waypoints.
+  ref_speed_mps: 5.0
+
+# ---------------------------------------------------------------------------
+# Phase 12.5 — Adaptive Knowledge Update
+# ---------------------------------------------------------------------------
+adaptive_knowledge:
+  enabled: true
+
+  # Minimum valid evaluations before a candidate becomes ACTIVE knowledge.
+  # Justification: 3 prevents single-observation knowledge in a safety system.
+  minimum_evidence_count: 3
+
+  # Minimum numeric confidence [0.0, 1.0].
+  # Justification: 0.40 is the LOW-MODERATE boundary; below is noise.
+  minimum_confidence: 0.40
+
+  # Minimum consistency [0.0, 1.0]; 1.0 = no contradictions.
+  # Justification: 0.60 allows some disagreement while requiring majority.
+  minimum_consistency: 0.60
+
+  # Minimum success ratio among valid outcomes.
+  # 0.0 = negative knowledge (failure patterns) is also allowed.
+  minimum_success_ratio: 0.0
+
+  # Allow PARTIAL_SUCCESS and DEGRADED as evidence.
+  allow_partial_evidence: true
+  allow_degraded_evidence: true
+
+  # Allow FAILURE and UNSAFE_OUTCOME as negative evidence.
+  allow_negative_evidence: true
+
+  # Stricter thresholds for SAFETY-type knowledge.
+  safety_minimum_evidence_count: 5
+  safety_minimum_confidence: 0.60
+
+  # Staleness: mark ACTIVE knowledge STALE after this many seconds
+  # without new supporting evidence. 0 = disabled.
+  stale_after_seconds: 0
+
+  # Capacity limits.
+  maximum_entries: 500
+  maximum_history_per_entry: 10
+  maximum_evidence_per_entry: 50
+
+# ---------------------------------------------------------------------------
+# Phase 12.6 — Experience-Driven Decision Improvement
+# ---------------------------------------------------------------------------
+experience_decision_improvement:
+  enabled: true
+
+  # Operating mode: DISABLED | OBSERVATION_ONLY | ADVISORY | BOUNDED_ACTIVE
+  # Default: OBSERVATION_ONLY — conservative; must be explicitly upgraded.
+  mode: OBSERVATION_ONLY
+
+  # Minimum knowledge confidence for eligibility.
+  # Justification: MODERATE (0.50) prevents low-evidence signals affecting decisions.
+  minimum_knowledge_confidence: 0.50
+
+  # Minimum evidence count (consistent with Phase 12.5 default).
+  minimum_evidence_count: 3
+
+  # Maximum bounded influence on candidate score [0.0, 0.5].
+  # Justification: 0.10 preserves baseline dominance; experience is secondary.
+  maximum_influence: 0.10
+
+  # Allow negative evidence (FAILURE/UNSAFE) as risk signal.
+  allow_negative_evidence: true
+
+  # Allow CONFLICTING knowledge to influence decisions.
+  # Default: false — contradictory knowledge should not influence decisions.
+  allow_conflicting_knowledge: false
+
+  # Stale knowledge policy: exclude | penalize | allow
+  stale_knowledge_policy: exclude
+
+  # Always fall back to baseline on failure (non-negotiable).
+  fallback_to_baseline: true
+
+  # Always require safety validation (non-negotiable).
+  safety_required: true
+
+  # Rollback to OBSERVATION_ONLY if degradation ratio exceeds threshold.
+  rollback_degradation_threshold: 0.20
+
+  # Enable additional scrutiny for Indian road mixed-traffic scenarios.
+  indian_road_context_aware: true

@@ -1,0 +1,95 @@
+# IndiDrive AI — Vehicle Configuration
+# Phase 0: only documents values already supported by the current
+# simulation code. No physical vehicle has been characterized or
+# measured — these are simulation parameters, not real-world specs.
+
+vehicle:
+  # Simulation-only identity. The project has no real vehicle integration;
+  # "vehicle_model" here is the CARLA blueprint used by
+  # core/carla_integration/vehicle.py (spawn_ego_vehicle), used only when
+  # a CARLA server is connected.
+  vehicle_model: "vehicle.tesla.model3"
+  carla_spawn:
+    blueprint_filter: "vehicle.tesla.model3"
+    max_spawn_attempts: 20     # core/carla_integration/vehicle.py default
+
+  # Speed limits as enforced by legacy_simulator/server.py's san_num()
+  # clamps (ego_speed, sensor "relative_speed" fields). Units: km/h.
+  speed:
+    min_kmh: 0
+    max_kmh: 120
+    default_ego_speed_kmh: 40   # default used by /api/ai/predict, /api/ai/decision
+
+  # legacy_simulator/server.py has no explicit physical dimensions
+  # (length/width/wheelbase) anywhere in the code — Phase 0 does not
+  # invent these. Populate once a real vehicle model is defined.
+  dimensions:
+    length_m: null    # NOT DEFINED in current codebase
+    width_m: null      # NOT DEFINED in current codebase
+    wheelbase_m: null  # NOT DEFINED in current codebase
+
+  # Bounding-box default used by SimAI.detect() in legacy_simulator/server.py
+  # when a detected object omits its own bbox.
+  default_detection_bbox:
+    w: 30
+    h: 50
+
+safety_limits:
+  # Risk thresholds from SimAI.risk() in legacy_simulator/server.py.
+  risk_levels:
+    critical: 0.83
+    high: 0.65
+    medium: 0.45
+    low: 0.20
+  # Replanning trigger from SimAI.plan(): a candidate path with risk
+  # above this is flagged and the planner recommends replanning.
+  replanning_risk_threshold: 0.68
+  # SimAI.decide() default max_risk operating point.
+  default_max_risk: 0.30
+
+# -------------------------------------------------------------------------
+# Phase 10.1 — Vehicle Dynamics (Kinematic Bicycle Model)
+# Configuration values ONLY — not characterised vehicle specifications.
+# All physical limits must be verified against the actual vehicle before use.
+# -------------------------------------------------------------------------
+dynamics10:
+  model: "kinematic_bicycle"
+  steering_policy: "CLAMP"        # CLAMP | REJECT
+
+  # SI units: metres, radians, m/s, m/s²
+  wheelbase_m:              2.85
+  front_axle_distance_m:    1.50
+  rear_axle_distance_m:     1.35
+  length_m:                 4.50
+  width_m:                  1.80
+  max_steering_angle_rad:   0.610   # ~35 degrees
+  max_steering_rate_rad_s:  0.700   # rad/s
+  min_velocity_mps:         0.0
+  max_velocity_mps:         33.33   # ~120 km/h
+  min_acceleration_mps2:   -8.0     # max deceleration
+  max_acceleration_mps2:    4.0
+  dt_max_s:                 10.0
+
+# -------------------------------------------------------------------------
+# Phase 10.2 — Trajectory Tracking
+# Configuration values only — not characterised road specifications.
+# -------------------------------------------------------------------------
+tracking:
+  enabled: true
+  matching_method: "NEAREST_SEGMENT"   # NEAREST_SEGMENT | NEAREST_POINT
+
+  max_reference_age_s:    1.0
+  min_trajectory_points:  1
+
+  # Cross-track error thresholds (metres)
+  cte_minor_m:  0.30
+  cte_major_m:  1.00
+  cte_large_m:  3.00
+
+  # Heading error thresholds (radians)
+  heading_minor_rad:  0.30
+  heading_major_rad:  0.785   # ~45 deg
+
+  # Speed error thresholds (m/s)
+  speed_minor_mps:  2.0
+  speed_major_mps:  5.0

@@ -1,0 +1,76 @@
+# IndiDrive AI — Phase 3 | Sensor Fusion Configuration
+# =========================================================
+# Starting defaults only (spec section 35) — tune based on actual
+# experiments once real camera/LiDAR/radar hardware or richer CARLA
+# scenarios are available. Every parameter used by core/fusion/ is
+# documented here; see docs/FUSION_ARCHITECTURE.md for the full design.
+
+fusion:
+  enabled: true
+
+  # When true: no random association tie-breaking, no random confidence
+  # jitter, no simulated latency. The same recorded PerceptionFrame
+  # sequence produces the same FusedWorldState sequence. core/fusion/
+  # contains no randomness at all today, so this flag is currently a
+  # documented guarantee rather than something that changes behavior —
+  # it exists so a future change (e.g. randomized tie-breaking for
+  # performance) can be gated behind it without breaking determinism by
+  # default.
+  deterministic: true
+
+  synchronization:
+    enabled: true
+    max_timestamp_delta_ms: 50
+    stale_threshold_ms: 200
+
+  association:
+    enabled: true
+    max_position_distance_m: 3.0
+    min_iou: 0.10
+    max_depth_error_m: 5.0
+    max_timestamp_delta_s: 0.2
+    # cost = position_weight*position_error + bbox_weight*bbox_error
+    #      + depth_weight*depth_error + class_weight*class_mismatch
+    #      + time_weight*timestamp_error   (see core/fusion/data_association.py)
+    weights:
+      position: 0.40
+      bbox_iou: 0.20
+      depth: 0.20
+      cls: 0.10
+      time: 0.10
+
+  confidence:
+    # Used by confidence_fusion.py's class-authority / position-authority
+    # tables, not as a direct linear blend — see docs/CONFIDENCE_FUSION.md.
+    camera_weight: 0.35
+    lidar_weight: 0.45
+    radar_weight: 0.20
+
+  coordinate:
+    frame: "vehicle"
+
+  temporal:
+    enabled: true
+    max_object_age_ms: 300
+    match_distance_m: 2.5
+
+# Calibration is never invented (spec section 9/36). Set configured:true
+# and fill in extrinsics/intrinsics only once real values are measured
+# for the deployed sensor rig; until then every entry below honestly
+# reports NOT_CONFIGURED and dependent transforms are skipped rather
+# than approximated.
+calibration:
+  camera:
+    configured: false
+    file: ""
+    # extrinsics: {translation: [0.0, 0.0, 1.5], rotation_rpy: [0.0, 0.0, 0.0]}
+    # intrinsics: {fx: 600.0, fy: 600.0, cx: 320.0, cy: 240.0, image_width: 640, image_height: 480}
+
+  lidar:
+    configured: false
+    file: ""
+    # extrinsics: {translation: [0.0, 0.0, 1.8], rotation_rpy: [0.0, 0.0, 0.0]}
+
+  radar:
+    configured: false
+    file: ""

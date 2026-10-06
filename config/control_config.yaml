@@ -1,0 +1,74 @@
+# IndiDrive AI — Phase 10.4 | Control Configuration
+# ====================================================
+# Steering / Speed Control layer configuration.
+#
+# All physical values are in SI units:
+#   distance   = metres
+#   time       = seconds
+#   speed      = metres/second
+#   accel      = metres/second²
+#   steering   = radians
+#
+# Limits are aligned with:
+#   core/vehicle/vehicle_parameters.py  (Phase 10.1 VehicleParameters.default())
+#   config/mpc_config.yaml              (Phase 10.3 MPCConfig)
+#
+# Do NOT create conflicting values here.
+# Road-specific speed limits belong to the planner (Phase 9.6 / 10.5).
+
+control:
+  enabled: true
+
+  steering:
+    # Minimum steering output angle (rad).  Must be < 0.
+    # -0.610 rad ≈ -35°  (matches Phase 10.1 VehicleParameters.max_steering_angle_rad)
+    min_angle: -0.610
+
+    # Maximum steering output angle (rad).  Must be > 0.
+    # +0.610 rad ≈ +35°
+    max_angle: 0.610
+
+    # Maximum steering rate (rad/s).  Must be > 0.
+    # 0.700 rad/s ≈ 40°/s — smooth steering for Indian urban roads
+    max_rate: 0.700
+
+  longitudinal:
+    # Minimum acceleration output (m/s²).  Must be < 0.
+    # -8.0 m/s² — hard braking limit
+    min_acceleration: -8.0
+
+    # Maximum acceleration output (m/s²).  Must be > 0.
+    # 4.0 m/s² — moderate acceleration
+    max_acceleration: 4.0
+
+    # Minimum target speed (m/s).  Must be >= 0.
+    # 0.0 — vehicle may be commanded to stop
+    min_speed: 0.0
+
+    # Maximum target speed (m/s).
+    # 33.33 m/s ≈ 120 km/h — highway maximum
+    max_speed: 33.33
+
+  braking:
+    # Deceleration magnitude below which brake output = 0 (coast).
+    # A small threshold avoids spurious brake activation on micro-decelerations.
+    threshold: 0.05
+
+    # Maximum brake deceleration magnitude (m/s², positive value).
+    # Applied as a clamp on the brake output.
+    max_brake: 8.0
+
+  # MPC snapshot age beyond which it is classified as STALE (seconds).
+  # Commands will not be generated from stale MPC data.
+  stale_timeout: 0.5
+
+  fallback:
+    # Behaviour when the MPC solution is unavailable, stale, or infeasible.
+    # Options:
+    #   INVALID_COMMAND   — Return an INVALID command (safest; forces upstream).
+    #   HOLD_CURRENT      — Return the most recent valid command unchanged.
+    #   SAFE_DECELERATION — Apply a gentle deceleration.
+    policy: INVALID_COMMAND
+
+    # Deceleration to apply when policy = SAFE_DECELERATION (m/s², <= 0).
+    safe_deceleration: -2.0

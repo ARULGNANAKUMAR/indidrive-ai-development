@@ -1,0 +1,43 @@
+# IndiDrive AI — Phase 9.6 Integrated Planner Configuration
+# ----------------------------------------------------------
+# This file configures the Phase 9.6 integrated planner only.
+# Existing phase-specific configs (planner_config.yaml, safety_config.yaml,
+# indian_road_planning_config.yaml, etc.) are unchanged.
+
+phase_9_6:
+  # Global enable
+  enabled: true
+
+  # Input staleness thresholds (seconds)
+  # Critical inputs older than this are flagged as stale
+  max_world_model_age_s: 2.0
+  max_planning_context_age_s: 2.0
+  max_planning_space_age_s: 2.0
+  max_candidate_set_age_s: 2.0
+  max_risk_set_age_s: 2.0
+  max_replanning_result_age_s: 2.0
+
+  # Required inputs — set to true to treat absence as a hard error
+  # Set to false to allow graceful degradation without that input
+  require_world_model: false
+  require_planning_context: false
+  require_planning_space: true
+  require_candidate_set: true
+  require_risk_set: true
+
+  # Planning permission
+  allow_degraded_planning: true
+
+  # Candidate selection (planning-level only — NOT vehicle control)
+  allow_selection: true
+
+  # Risk threshold for candidate eligibility
+  # Candidates with composite risk score >= this are not eligible for selection
+  max_acceptable_risk_score: 0.80
+
+  # Coordinate frame expected in all planning objects
+  expected_coordinate_frame: "VEHICLE"
+
+  # Benchmark
+  benchmark:
+    enabled: true

@@ -1,0 +1,46 @@
+# IndiDrive AI — Phase 7 | World Model Configuration
+# =====================================================
+# Safe defaults suitable for Indian road conditions.
+# All values can be overridden here; unknown keys are silently ignored.
+
+config_version: "7.0"
+
+# --- Object limits ---
+max_objects: 128
+max_trajectory_points: 50
+max_prediction_hypotheses: 8
+
+# --- Road / anomaly limits ---
+max_anomalies: 64
+max_boundary_points: 128
+
+# --- Temporal thresholds ---
+max_data_age_seconds: 1.0
+timestamp_tolerance_seconds: 0.2
+
+# --- Object deduplication ---
+object_merge_distance_m: 0.5
+object_merge_time_tolerance_s: 0.3
+
+# --- Confidence / uncertainty aggregation ---
+confidence_object_weight: 0.5
+confidence_road_weight: 0.3
+confidence_prediction_weight: 0.2
+
+uncertainty_stale_penalty: 0.20
+uncertainty_missing_module_penalty: 0.10
+uncertainty_degraded_module_penalty: 0.05
+
+# --- Snapshot buffer ---
+snapshot_buffer_size: 10
+
+# --- Validation ---
+strict_coordinate_frame: true
+max_valid_position_m: 300.0
+min_valid_confidence: 0.0
+max_valid_confidence: 1.0
+min_valid_dimension_m: 0.01
+max_valid_dimension_m: 50.0
+
+# --- Coordinate frame ---
+expected_coordinate_frame: "VEHICLE"
