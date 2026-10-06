@@ -1,0 +1,45 @@
+# --- Secrets — never commit these ---
+.env
+*.env.local
+*.pem
+*.key
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# --- Logs (structured logging output, Phase 0) ---
+logs/*/*.log
+!logs/*/.gitkeep
+
+# --- Runtime data / generated artifacts ---
+storage/datasets/*
+!storage/datasets/.gitkeep
+storage/benchmarks/*
+!storage/benchmarks/.gitkeep
+storage/reports/*
+!storage/reports/.gitkeep
+storage/operating_mode.json
+data/*
+!data/.gitkeep
+models/*
+!models/.gitkeep
+# Phase 2 — perception model directories: keep structure, ignore weights
+!models/perception/
+!models/perception/**/
+models/perception/**/*
+!models/perception/**/.gitkeep
+
+# --- OS / editor ---
+.DS_Store
+.vscode/
+.idea/
+
+# --- CARLA recordings (can be large) ---
+*.log.gz
+recordings/

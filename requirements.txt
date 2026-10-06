@@ -1,0 +1,28 @@
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+pydantic>=2.0.0
+pyyaml>=6.0.1
+httpx>=0.27.0
+pytest>=8.2.0
+
+# Bridges the legacy_simulator/ Flask (WSGI) app into this FastAPI (ASGI)
+# app so both run as ONE process on ONE port. If missing, the platform
+# still runs — /simulator/* just returns a clear 501 instead of the app.
+a2wsgi>=1.10.0
+
+# Needed by legacy_simulator/ (Flask canvas simulator, now mounted at
+# /simulator instead of running as its own process):
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# Needed by core/carla_integration/ (sensor byte-decoding etc). This does
+# NOT include the `carla` package itself — that's not a normal PyPI
+# wheel for every platform; install it from CARLA's own PythonAPI
+# distribution. See docs/CARLA_SETUP.md.
+numpy>=1.24.0,<2.0.0
+opencv-python>=4.8.0
+
+# Optional — enable real functionality when present, features degrade
+# gracefully (with clear labeling) when these aren't installed:
+reportlab>=4.0.0        # real PDF reports; falls back to .txt otherwise
+ultralytics>=8.3.0       # real YOLO auto-labeling + ONNX export; falls back to a flagged heuristic otherwise
