@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IndiDrive AI Lab — Autonomous Driving Research Platform</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Chart.js for metrics -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="sim-warning">⚠ SIMULATION ENVIRONMENT — Not for real-world vehicle control</div>
+
+<div id="app">
+  <!-- ══════════════════════ SIDEBAR ══════════════════════ -->
+  <aside id="sidebar">
+    <div id="logo">
+      <div id="logo-icon">🚗</div>
+      <div id="logo-text">
+        <div id="logo-title">IndiDrive AI</div>
+        <div id="logo-sub">SIH 2026 — SIH26037</div>
+      </div>
+    </div>
+
+    <nav id="nav">
+      <a class="nav-item active" data-page="dashboard">
+        <span class="nav-icon">📊</span><span>Dashboard</span>
+      </a>
+      <a class="nav-item" data-page="simulator">
+        <span class="nav-icon">🛣️</span><span>Simulator</span>
+      </a>
+      <a class="nav-item" data-page="scenario">
+        <span class="nav-icon">🎯</span><span>Scenario Lab</span>
+      </a>
+      <a class="nav-item" data-page="ai-engine">
+        <span class="nav-icon">🤖</span><span>AI Engine</span>
+      </a>
+      <a class="nav-item" data-page="testing">
+        <span class="nav-icon">🧪</span><span>Testing Lab</span>
+      </a>
+      <a class="nav-item" data-page="dataset">
+        <span class="nav-icon">📁</span><span>Dataset Lab</span>
+      </a>
+      <a class="nav-item" data-page="models">
+        <span class="nav-icon">🧠</span><span>Model Lab</span>
+      </a>
+      <a class="nav-item" data-page="replay">
+        <span class="nav-icon">⏪</span><span>Decision Replay</span>
+      </a>
+      <a class="nav-item" data-page="reports">
+        <span class="nav-icon">📋</span><span>Reports</span>
+      </a>
+      <a class="nav-item" data-page="security">
+        <span class="nav-icon">🔒</span><span>Security</span>
+      </a>
+    </nav>
+
+    <div id="server-status">
+      <div id="status-dot"></div>
+      <span id="status-label">Connecting…</span>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════ MAIN ══════════════════════════ -->
+  <main id="content">
+
+    <!-- ─── DASHBOARD ──────────────────────────────────────── -->
+    <section id="page-dashboard" class="page active">
+      <div class="page-header">
+        <h1>Mission Control Dashboard</h1>
+        <div class="header-actions">
+          <span class="badge badge-sim">SIMULATION ENV</span>
+          <button class="btn btn-primary" id="btn-quick-run">▶ Quick Simulation</button>
+        </div>
+      </div>
+
+      <!-- Status bar -->
+      <div class="status-bar">
+        <div class="status-card" id="sc-model">
+          <div class="sc-label">Active Model</div>
+          <div class="sc-value" id="sv-model">IndiDrive-V3</div>
+        </div>
+        <div class="status-card" id="sc-status">
+          <div class="sc-label">Sim Status</div>
+          <div class="sc-value" id="sv-status">IDLE</div>
+        </div>
+        <div class="status-card" id="sc-scenario">
+          <div class="sc-label">Scenario</div>
+          <div class="sc-value" id="sv-scenario">—</div>
+        </div>
+        <div class="status-card" id="sc-confidence">
+          <div class="sc-label">AI Confidence</div>
+          <div class="sc-value" id="sv-confidence">—</div>
+        </div>
+        <div class="status-card" id="sc-risk">
+          <div class="sc-label">Risk Level</div>
+          <div class="sc-value" id="sv-risk">SAFE</div>
+        </div>
+        <div class="status-card" id="sc-speed">
+          <div class="sc-label">Speed</div>
+          <div class="sc-value" id="sv-speed">0 km/h</div>
+        </div>
+        <div class="status-card" id="sc-action">
+          <div class="sc-label">AI Action</div>
+          <div class="sc-value" id="sv-action">—</div>
+        </div>
+        <div class="status-card" id="sc-collision">
+          <div class="sc-label">Collision</div>
+          <div class="sc-value" id="sv-collision">NONE</div>
+        </div>
+      </div>
+
+      <!-- Metric cards row -->
+      <div class="card-row">
+        <div class="metric-card">
+          <div class="mc-icon">🔍</div>
+          <div class="mc-body">
+            <div class="mc-title">Detection</div>
+            <div class="mc-val" id="mc-detection">0 objects</div>
+            <div class="mc-sub" id="mc-detection-conf">—</div>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="mc-icon">📈</div>
+          <div class="mc-body">
+            <div class="mc-title">Prediction</div>
+            <div class="mc-val" id="mc-prediction">—</div>
+            <div class="mc-sub" id="mc-pred-ttc">TTC: —</div>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="mc-icon">⚡</div>
+          <div class="mc-body">
+            <div class="mc-title">Decision</div>
+            <div class="mc-val" id="mc-decision">—</div>
+            <div class="mc-sub" id="mc-dec-conf">—</div>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="mc-icon">🗺️</div>
+          <div class="mc-body">
+            <div class="mc-title">Planning</div>
+            <div class="mc-val" id="mc-planning">—</div>
+            <div class="mc-sub" id="mc-plan-status">—</div>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="mc-icon">🛡️</div>
+          <div class="mc-body">
+            <div class="mc-title">Safety Score</div>
+            <div class="mc-val" id="mc-safety">91.6</div>
+            <div class="mc-sub">Simulation metric</div>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="mc-icon">⏱️</div>
+          <div class="mc-body">
+            <div class="mc-title">Performance</div>
+            <div class="mc-val" id="mc-perf">—</div>
+            <div class="mc-sub" id="mc-perf-lat">Latency: — ms</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Test history + Model comparison -->
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Recent Test History</h3>
+            <span class="panel-badge" id="test-count-badge">0 tests</span>
+          </div>
+          <div id="test-history-list" class="list-container">
+            <div class="empty-state">No tests run yet. Use Testing Lab to run scenarios.</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h3>Model Comparison</h3></div>
+          <table class="data-table" id="model-comparison-table">
+            <thead>
+              <tr>
+                <th>Model</th><th>Safety</th><th>Collision%</th>
+                <th>Prediction</th><th>Latency</th><th>Success%</th>
+              </tr>
+            </thead>
+            <tbody id="model-table-body">
+              <tr><td colspan="6" class="empty-state">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── SIMULATOR ─────────────────────────────────────── -->
+    <section id="page-simulator" class="page">
+      <div class="page-header">
+        <h1>Indian Road Simulator</h1>
+        <div class="header-actions">
+          <select id="sim-road-select" class="select-sm">
+            <option value="URBAN">Urban Road</option>
+            <option value="VILLAGE">Village Road</option>
+            <option value="HIGHWAY">Highway</option>
+            <option value="MARKET">Market Road</option>
+            <option value="NARROW">Narrow Road</option>
+            <option value="UNMARKED">Unmarked Road</option>
+            <option value="MOUNTAIN">Mountain/Rocky</option>
+            <option value="DAMAGED">Damaged Road</option>
+          </select>
+          <button class="btn btn-success" id="sim-start">▶ Start</button>
+          <button class="btn btn-warning" id="sim-pause" disabled>⏸ Pause</button>
+          <button class="btn btn-danger"  id="sim-stop"  disabled>⏹ Stop</button>
+          <button class="btn btn-outline" id="sim-reset">↺ Reset</button>
+        </div>
+      </div>
+
+      <div id="sim-layout">
+        <!-- Canvas area -->
+        <div id="sim-canvas-wrap">
+          <canvas id="sim-canvas" width="900" height="580"></canvas>
+          <div id="sim-hud">
+            <div class="hud-item"><span class="hud-label">Speed</span><span id="hud-speed">0</span> <span class="hud-unit">km/h</span></div>
+            <div class="hud-item"><span class="hud-label">Action</span><span id="hud-action">IDLE</span></div>
+            <div class="hud-item"><span class="hud-label">Risk</span><span id="hud-risk">SAFE</span></div>
+            <div class="hud-item"><span class="hud-label">TTC</span><span id="hud-ttc">—</span> <span class="hud-unit">s</span></div>
+            <div class="hud-item"><span class="hud-label">Objects</span><span id="hud-objs">0</span></div>
+          </div>
+          <!-- Overlays toggle -->
+          <div id="overlay-toggles">
+            <label><input type="checkbox" id="tog-detect" checked> Detection</label>
+            <label><input type="checkbox" id="tog-predict" checked> Predictions</label>
+            <label><input type="checkbox" id="tog-risk" checked> Risk Zones</label>
+            <label><input type="checkbox" id="tog-path" checked> Path</label>
+          </div>
+        </div>
+
+        <!-- Right panel -->
+        <div id="sim-right-panel">
+          <!-- Speed control -->
+          <div class="panel-sm">
+            <div class="panel-header-sm">⏩ Sim Speed</div>
+            <div class="speed-btns">
+              <button class="spd-btn" data-speed="0.25">×¼</button>
+              <button class="spd-btn" data-speed="0.5">×½</button>
+              <button class="spd-btn active" data-speed="1">×1</button>
+              <button class="spd-btn" data-speed="2">×2</button>
+              <button class="spd-btn" data-speed="5">×5</button>
+            </div>
+          </div>
+
+          <!-- Scenario controls -->
+          <div class="panel-sm">
+            <div class="panel-header-sm">🎛 Scenario Controls</div>
+            <div class="slider-group">
+              <label>Traffic Density <span id="val-traffic">0.6</span></label>
+              <input type="range" id="sl-traffic" min="0" max="1" step="0.05" value="0.6">
+            </div>
+            <div class="slider-group">
+              <label>Road Damage <span id="val-damage">0.3</span></label>
+              <input type="range" id="sl-damage" min="0" max="1" step="0.05" value="0.3">
+            </div>
+            <div class="slider-group">
+              <label>Unpredictability <span id="val-unpredict">0.5</span></label>
+              <input type="range" id="sl-unpredict" min="0" max="1" step="0.05" value="0.5">
+            </div>
+            <div class="slider-group">
+              <label>Visibility <span id="val-visibility">0.8</span></label>
+              <input type="range" id="sl-visibility" min="0.1" max="1" step="0.05" value="0.8">
+            </div>
+          </div>
+
+          <!-- Manual event injection -->
+          <div class="panel-sm">
+            <div class="panel-header-sm">⚡ Inject Event</div>
+            <div class="inject-grid">
+              <button class="btn-inject" id="inj-ped">+ Pedestrian</button>
+              <button class="btn-inject" id="inj-cattle">+ Cattle</button>
+              <button class="btn-inject" id="inj-car">+ Vehicle</button>
+              <button class="btn-inject" id="inj-bike">+ Bike</button>
+              <button class="btn-inject" id="inj-pothole">+ Pothole</button>
+              <button class="btn-inject" id="inj-rock">+ Rock</button>
+              <button class="btn-inject" id="inj-block">Block Road</button>
+              <button class="btn-inject" id="inj-stop">Force Stop</button>
+            </div>
+          </div>
+
+          <!-- SIH Scenarios -->
+          <div class="panel-sm">
+            <div class="panel-header-sm">🇮🇳 SIH 2026 Scenarios</div>
+            <div class="sih-btns">
+              <button class="sih-btn" data-sih="sih_1">SIH-1: Village Road</button>
+              <button class="sih-btn" data-sih="sih_2">SIH-2: Urban Intersection</button>
+              <button class="sih-btn" data-sih="sih_3">SIH-3: Highway Merge</button>
+              <button class="sih-btn" data-sih="sih_4">SIH-4: Market Area</button>
+              <button class="sih-btn" data-sih="sih_5">SIH-5: Cattle Crossing</button>
+            </div>
+          </div>
+
+          <!-- Live metrics -->
+          <div class="panel-sm">
+            <div class="panel-header-sm">📊 Live Metrics</div>
+            <div id="sim-live-metrics">
+              <div class="live-metric"><span>Collisions</span><span id="lm-coll">0</span></div>
+              <div class="live-metric"><span>Replans</span><span id="lm-replan">0</span></div>
+              <div class="live-metric"><span>Max Risk</span><span id="lm-maxrisk">0.00</span></div>
+              <div class="live-metric"><span>Min TTC</span><span id="lm-minttc">—</span></div>
+              <div class="live-metric"><span>Decisions</span><span id="lm-dec">0</span></div>
+              <div class="live-metric"><span>Elapsed</span><span id="lm-time">0s</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── SCENARIO LAB ──────────────────────────────────── -->
+    <section id="page-scenario" class="page">
+      <div class="page-header">
+        <h1>Scenario Lab</h1>
+        <div class="header-actions">
+          <button class="btn btn-primary" id="btn-gen-random">🎲 Random Scenario</button>
+          <button class="btn btn-success" id="btn-gen-scenario">⚙ Generate</button>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header"><h3>Scenario Parameters</h3></div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Road Type</label>
+              <select id="gen-road-type">
+                <option value="URBAN">Urban Road</option>
+                <option value="VILLAGE">Village Road</option>
+                <option value="HIGHWAY">Highway</option>
+                <option value="MARKET">Market Road</option>
+                <option value="NARROW">Narrow Road</option>
+                <option value="UNMARKED">Unmarked Road</option>
+                <option value="MOUNTAIN">Mountain/Rocky</option>
+                <option value="DAMAGED">Damaged Road</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Weather</label>
+              <select id="gen-weather">
+                <option value="clear">Clear</option>
+                <option value="rain">Rain</option>
+                <option value="fog">Fog</option>
+                <option value="dust">Dust</option>
+                <option value="night">Night</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Traffic Density <span id="gv-traffic">0.6</span></label>
+              <input type="range" id="g-traffic" min="0" max="1" step="0.05" value="0.6">
+            </div>
+            <div class="form-group">
+              <label>Road Damage <span id="gv-damage">0.3</span></label>
+              <input type="range" id="g-damage" min="0" max="1" step="0.05" value="0.3">
+            </div>
+            <div class="form-group">
+              <label>Pedestrian Density <span id="gv-ped">0.3</span></label>
+              <input type="range" id="g-ped" min="0" max="1" step="0.05" value="0.3">
+            </div>
+            <div class="form-group">
+              <label>Animal Probability <span id="gv-animal">0.1</span></label>
+              <input type="range" id="g-animal" min="0" max="1" step="0.05" value="0.1">
+            </div>
+            <div class="form-group">
+              <label>Obstacle Probability <span id="gv-obs">0.2</span></label>
+              <input type="range" id="g-obs" min="0" max="1" step="0.05" value="0.2">
+            </div>
+            <div class="form-group">
+              <label>Unpredictability <span id="gv-unp">0.5</span></label>
+              <input type="range" id="g-unp" min="0" max="1" step="0.05" value="0.5">
+            </div>
+            <div class="form-group">
+              <label>Vehicle Speed <span id="gv-spd">40</span> km/h</label>
+              <input type="range" id="g-spd" min="5" max="100" step="5" value="40">
+            </div>
+            <div class="form-group">
+              <label>Visibility <span id="gv-vis">0.8</span></label>
+              <input type="range" id="g-vis" min="0.1" max="1" step="0.05" value="0.8">
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h3>Generated Scenario</h3></div>
+          <div id="gen-scenario-output">
+            <div class="empty-state">Configure parameters and click Generate.</div>
+          </div>
+          <div id="gen-scenario-actions" style="display:none">
+            <button class="btn btn-primary" id="btn-load-in-sim">▶ Load in Simulator</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIH Templates -->
+      <div class="panel mt">
+        <div class="panel-header"><h3>🇮🇳 SIH 2026 Ready Templates</h3></div>
+        <div id="sih-cards" class="sih-card-grid"></div>
+      </div>
+    </section>
+
+    <!-- ─── AI ENGINE ──────────────────────────────────────── -->
+    <section id="page-ai-engine" class="page">
+      <div class="page-header">
+        <h1>AI Engine Inspector</h1>
+        <button class="btn btn-primary" id="btn-run-ai-cycle">▶ Run AI Cycle</button>
+      </div>
+
+      <div class="pipeline-row">
+        <div class="pipe-stage" id="ps-sensor">
+          <div class="ps-icon">📡</div><div class="ps-name">Sensor Input</div>
+          <div class="ps-data" id="psd-sensor">—</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-stage" id="ps-detect">
+          <div class="ps-icon">🔍</div><div class="ps-name">Detection</div>
+          <div class="ps-data" id="psd-detect">—</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-stage" id="ps-track">
+          <div class="ps-icon">📌</div><div class="ps-name">Tracking</div>
+          <div class="ps-data" id="psd-track">—</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-stage" id="ps-predict">
+          <div class="ps-icon">📈</div><div class="ps-name">Prediction</div>
+          <div class="ps-data" id="psd-predict">—</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-stage" id="ps-risk">
+          <div class="ps-icon">⚠️</div><div class="ps-name">Risk</div>
+          <div class="ps-data" id="psd-risk">—</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-stage" id="ps-decide">
+          <div class="ps-icon">🧠</div><div class="ps-name">Decision</div>
+          <div class="ps-data" id="psd-decide">—</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-stage" id="ps-plan">
+          <div class="ps-icon">🗺️</div><div class="ps-name">Planning</div>
+          <div class="ps-data" id="psd-plan">—</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-stage" id="ps-action">
+          <div class="ps-icon">🚗</div><div class="ps-name">Action</div>
+          <div class="ps-data" id="psd-action">—</div>
+        </div>
+      </div>
+
+      <div class="two-col mt">
+        <!-- Detected objects -->
+        <div class="panel">
+          <div class="panel-header"><h3>Detected Objects</h3></div>
+          <div id="ai-detections-list" class="detection-list">
+            <div class="empty-state">Run AI cycle to see detections.</div>
+          </div>
+        </div>
+
+        <!-- Decision detail -->
+        <div class="panel">
+          <div class="panel-header"><h3>Decision Analysis (XAI)</h3></div>
+          <div id="ai-decision-detail">
+            <div class="empty-state">Run AI cycle to see decision analysis.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel mt">
+        <div class="panel-header"><h3>Action Evaluation Matrix</h3></div>
+        <div id="ai-action-matrix">
+          <div class="empty-state">Run AI cycle to see action evaluations.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── TESTING LAB ───────────────────────────────────── -->
+    <section id="page-testing" class="page">
+      <div class="page-header">
+        <h1>Testing Lab</h1>
+        <div class="header-actions">
+          <select id="test-model-select" class="select-sm">
+            <option>IndiDrive-V3</option>
+            <option>IndiDrive-V2</option>
+            <option>IndiDrive-V1</option>
+          </select>
+          <button class="btn btn-danger" id="btn-run-all-tests">▶▶ Run All Levels</button>
+        </div>
+      </div>
+
+      <div class="test-levels-grid" id="test-levels-grid"></div>
+
+      <div class="two-col mt">
+        <div class="panel">
+          <div class="panel-header"><h3>Test Results</h3></div>
+          <div id="test-results-list" class="list-container">
+            <div class="empty-state">Click a test level to run tests.</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>AI Test Suggestions</h3></div>
+          <div id="test-suggestions-list" class="list-container">
+            <div class="empty-state">Suggestions appear after tests run.</div>
+          </div>
+          <button class="btn btn-outline mt-sm" id="btn-get-suggestions">🤖 Get AI Suggestions</button>
+        </div>
+      </div>
+
+      <div class="panel mt">
+        <div class="panel-header"><h3>Test Metrics Summary</h3></div>
+        <div id="test-metrics-summary">
+          <div class="metrics-grid">
+            <div class="met-item"><div class="met-label">Tests Run</div><div class="met-val" id="tm-run">0</div></div>
+            <div class="met-item"><div class="met-label">Passed</div><div class="met-val green" id="tm-pass">0</div></div>
+            <div class="met-item"><div class="met-label">Failed</div><div class="met-val red" id="tm-fail">0</div></div>
+            <div class="met-item"><div class="met-label">Safety Score</div><div class="met-val" id="tm-safety">—</div></div>
+            <div class="met-item"><div class="met-label">Collision Rate</div><div class="met-val" id="tm-coll">—</div></div>
+            <div class="met-item"><div class="met-label">Success Rate</div><div class="met-val" id="tm-succ">—</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── DATASET LAB ───────────────────────────────────── -->
+    <section id="page-dataset" class="page">
+      <div class="page-header">
+        <h1>Dataset Lab</h1>
+      </div>
+
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header"><h3>Import Dataset</h3></div>
+          <div class="form-group">
+            <label>Dataset Name</label>
+            <input type="text" id="ds-name" placeholder="My Indian Road Dataset" maxlength="100">
+          </div>
+          <div class="form-group">
+            <label>Format</label>
+            <select id="ds-format">
+              <option value="json">JSON</option>
+              <option value="csv">CSV</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Upload File (JSON/CSV, max 50MB)</label>
+            <input type="file" id="ds-file" accept=".json,.csv">
+          </div>
+          <div class="form-group">
+            <label>Or paste JSON samples (array of objects)</label>
+            <textarea id="ds-paste" rows="6" placeholder='[{"id":"obj_0","type":"pedestrian","x":1.2,"y":-15,"speed":4},...]'></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="btn-ds-validate">✓ Validate</button>
+            <button class="btn btn-success" id="btn-ds-analyze">📊 Analyze</button>
+            <button class="btn btn-outline" id="btn-ds-sample">🎲 Load Sample</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h3>Dataset Analysis</h3></div>
+          <div id="ds-analysis-output">
+            <div class="empty-state">Import and analyze a dataset to see results.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel mt">
+        <div class="panel-header"><h3>Self-Learning Workflow</h3></div>
+        <div class="workflow-steps">
+          <div class="wf-step" id="wfs-1"><div class="wf-num">1</div><div class="wf-label">New Data</div></div>
+          <div class="wf-arrow">→</div>
+          <div class="wf-step" id="wfs-2"><div class="wf-num">2</div><div class="wf-label">Validation</div></div>
+          <div class="wf-arrow">→</div>
+          <div class="wf-step" id="wfs-3"><div class="wf-num">3</div><div class="wf-label">Quality Check</div></div>
+          <div class="wf-arrow">→</div>
+          <div class="wf-step" id="wfs-4"><div class="wf-num">4</div><div class="wf-label">Training Queue</div></div>
+          <div class="wf-arrow">→</div>
+          <div class="wf-step" id="wfs-5"><div class="wf-num">5</div><div class="wf-label">Candidate Model</div></div>
+          <div class="wf-arrow">→</div>
+          <div class="wf-step" id="wfs-6"><div class="wf-num">6</div><div class="wf-label">Benchmark</div></div>
+          <div class="wf-arrow">→</div>
+          <div class="wf-step" id="wfs-7"><div class="wf-num">7</div><div class="wf-label">Compare</div></div>
+          <div class="wf-arrow">→</div>
+          <div class="wf-step" id="wfs-8"><div class="wf-num">8</div><div class="wf-label">Accept / Reject</div></div>
+        </div>
+        <button class="btn btn-primary mt-sm" id="btn-run-workflow">▶ Run Self-Learning Workflow</button>
+        <div id="workflow-log" class="log-container mt-sm"></div>
+      </div>
+    </section>
+
+    <!-- ─── MODEL LAB ─────────────────────────────────────── -->
+    <section id="page-models" class="page">
+      <div class="page-header">
+        <h1>Model Lab</h1>
+        <button class="btn btn-primary" id="btn-refresh-models">↻ Refresh</button>
+      </div>
+
+      <div class="model-cards-row" id="model-cards-row"></div>
+
+      <div class="panel mt">
+        <div class="panel-header"><h3>Model Comparison Chart</h3></div>
+        <canvas id="model-chart" height="120"></canvas>
+      </div>
+
+      <div class="panel mt">
+        <div class="panel-header"><h3>Detailed Comparison Table</h3></div>
+        <table class="data-table" id="full-compare-table">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>IndiDrive-V1</th>
+              <th>IndiDrive-V2</th>
+              <th>IndiDrive-V3 ✓</th>
+            </tr>
+          </thead>
+          <tbody id="full-compare-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─── DECISION REPLAY ──────────────────────────────── -->
+    <section id="page-replay" class="page">
+      <div class="page-header">
+        <h1>Decision Replay</h1>
+        <div class="header-actions">
+          <button class="btn btn-primary" id="btn-replay-sim">▶ Replay Last Simulation</button>
+          <button class="btn btn-outline" id="btn-replay-clear">Clear</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><h3>Event Timeline</h3></div>
+        <div id="replay-timeline" class="timeline-container">
+          <div class="empty-state">Run a simulation first to see decision replay.</div>
+        </div>
+      </div>
+
+      <div class="two-col mt">
+        <div class="panel">
+          <div class="panel-header"><h3>Selected Event — XAI Explanation</h3></div>
+          <div id="replay-xai-detail">
+            <div class="empty-state">Click a timeline event to see AI reasoning.</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>Alternative Actions Considered</h3></div>
+          <div id="replay-alternatives">
+            <div class="empty-state">Select an event to see alternatives.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── REPORTS ──────────────────────────────────────── -->
+    <section id="page-reports" class="page">
+      <div class="page-header">
+        <h1>Reports</h1>
+        <button class="btn btn-outline" id="btn-print-report" onclick="window.print()">🖨 Print / Export</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><h3>Performance Overview</h3></div>
+        <div class="metrics-grid" id="report-metrics"></div>
+      </div>
+
+      <div class="two-col mt">
+        <div class="panel">
+          <div class="panel-header"><h3>Simulation Run History</h3></div>
+          <div id="report-run-history" class="list-container">
+            <div class="empty-state">No runs yet.</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>Failure Analysis</h3></div>
+          <div id="report-failure-analysis">
+            <div class="empty-state">Run tests to see failure analysis.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel mt">
+        <div class="panel-header"><h3>Recommendations</h3></div>
+        <div id="report-recommendations">
+          <div class="empty-state">Recommendations appear after testing.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── SECURITY ─────────────────────────────────────── -->
+    <section id="page-security" class="page">
+      <div class="page-header">
+        <h1>Security Status</h1>
+        <button class="btn btn-primary" id="btn-run-sec-check">🔒 Run Security Check</button>
+      </div>
+
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header"><h3>Frontend Security</h3></div>
+          <div id="sec-frontend-checks" class="sec-checks-list"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>Backend Security</h3></div>
+          <div id="sec-backend-checks" class="sec-checks-list">
+            <div class="empty-state">Click "Run Security Check" to verify backend.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel mt">
+        <div class="panel-header"><h3>Security Architecture</h3></div>
+        <div class="sec-arch-grid">
+          <div class="sec-arch-item">
+            <div class="sa-icon">🔑</div>
+            <div class="sa-title">API Key Policy</div>
+            <div class="sa-desc">Keys stored server-side via environment variables only. Never in frontend code, localStorage, or URL parameters.</div>
+          </div>
+          <div class="sec-arch-item">
+            <div class="sa-icon">🛡️</div>
+            <div class="sa-title">Input Validation</div>
+            <div class="sa-desc">All user input sanitized on both frontend and backend. Numeric ranges clamped. Strings stripped of HTML/script characters.</div>
+          </div>
+          <div class="sec-arch-item">
+            <div class="sa-icon">🚫</div>
+            <div class="sa-title">No eval() / Dynamic Script</div>
+            <div class="sa-desc">No use of eval(), new Function(), innerHTML with user content, or dynamic script injection anywhere in the application.</div>
+          </div>
+          <div class="sec-arch-item">
+            <div class="sa-icon">⏱️</div>
+            <div class="sa-title">Rate Limiting</div>
+            <div class="sa-desc">Backend rate limiting: 120 requests/minute per IP. API requests have client-side timeout of 10 seconds.</div>
+          </div>
+          <div class="sec-arch-item">
+            <div class="sa-icon">📁</div>
+            <div class="sa-title">File Upload Security</div>
+            <div class="sa-desc">Allowed types: JSON, CSV only. Maximum 50 MB. Filenames sanitized. Path traversal blocked. Content treated as untrusted.</div>
+          </div>
+          <div class="sec-arch-item">
+            <div class="sa-icon">🌐</div>
+            <div class="sa-title">CORS Policy</div>
+            <div class="sa-desc">CORS restricted to configured origins only. Security headers set on all responses. Stack traces never exposed to client.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Scripts — loaded in dependency order -->
+<script src="config.js"></script>
+<script src="security.js"></script>
+<script src="dataset.js"></script>
+<script src="ai-engine.js"></script>
+<script src="simulator.js"></script>
+<script src="test-engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IndiDrive AI — Product Platform</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">ID</span>
+        <div>
+          <div class="brand-name">IndiDrive AI</div>
+          <div class="brand-sub">SIH26037 · Simulation Only</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <button class="nav-item active" data-page="dashboard">Dashboard</button>
+        <button class="nav-item" data-page="drive">Drive</button>
+        <button class="nav-item" data-page="datasets">Datasets</button>
+        <button class="nav-item" data-page="models">Models</button>
+        <button class="nav-item" data-page="testing">Testing</button>
+        <button class="nav-item" data-page="analytics">Analytics</button>
+        <button class="nav-item" data-page="reports">Reports</button>
+        <button class="nav-item" data-page="settings">Settings</button>
+        <button class="nav-item" data-page="about">About</button>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="theme-toggle">🌙 / ☀️</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <h1 id="page-title">Dashboard</h1>
+        <div id="mode-badge" class="badge">mode: —</div>
+      </header>
+
+      <section id="page-dashboard" class="page active">
+        <div class="grid-4" id="launcher-grid"></div>
+        <div class="panel">
+          <h2>Analytics Overview</h2>
+          <div id="analytics-overview" class="kv-grid"></div>
+        </div>
+      </section>
+
+      <section id="page-drive" class="page">
+        <div class="panel">
+          <h2>Drive — Phase 1 3D World</h2>
+          <p class="muted">Opens the Three.js visualization served by Phase 1 on port 8080.</p>
+          <a class="btn" href="http://localhost:8080" target="_blank">Launch 3D World ↗</a>
+        </div>
+      </section>
+
+      <section id="page-datasets" class="page">
+        <div class="panel">
+          <h2>Dataset Manager</h2>
+          <div class="row">
+            <input id="ds-name" placeholder="New dataset name">
+            <button class="btn" onclick="createDataset()">Create Dataset</button>
+          </div>
+          <div id="dataset-list" class="list"></div>
+        </div>
+      </section>
+
+      <section id="page-models" class="page">
+        <div class="panel">
+          <h2>Model Manager</h2>
+          <div id="model-list" class="list"></div>
+          <h3>Compare (by mAP@50)</h3>
+          <div id="model-compare" class="list"></div>
+        </div>
+      </section>
+
+      <section id="page-testing" class="page">
+        <div class="panel">
+          <h2>Benchmark & Testing Center</h2>
+          <button class="btn" onclick="runBenchmark()">Run Full Benchmark</button>
+          <div id="benchmark-results" class="kv-grid"></div>
+        </div>
+      </section>
+
+      <section id="page-analytics" class="page">
+        <div class="panel">
+          <h2>ECHO Memory Growth</h2>
+          <div id="echo-growth" class="kv-grid"></div>
+          <button class="btn" onclick="clusterEcho()">Cluster Patterns</button>
+          <button class="btn" onclick="promotePrinciples()">Promote Principles</button>
+          <button class="btn" onclick="promoteCapabilities()">Promote Capabilities</button>
+        </div>
+      </section>
+
+      <section id="page-reports" class="page">
+        <div class="panel">
+          <h2>Reports</h2>
+          <button class="btn" onclick="runBenchmarkAndReport()">Run Benchmark + Generate Reports</button>
+          <div id="report-links" class="list"></div>
+        </div>
+      </section>
+
+      <section id="page-settings" class="page">
+        <div class="panel">
+          <h2>Deployment Mode</h2>
+          <div id="mode-buttons" class="row"></div>
+        </div>
+      </section>
+
+      <section id="page-about" class="page">
+        <div class="panel">
+          <h2>About IndiDrive AI</h2>
+          <p>Phase 5 product platform extending Phases 1-4 into a unified autonomous
+          driving research + demo product: dataset management, self-learning (ECHO V2),
+          benchmarking, analytics, scenario management, reporting, and deployment modes.</p>
+          <p class="muted">SIH26037 · Simulation environment only · No live vehicle control.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+{
+  "models": [
+    {
+      "model_id": "2504bc9662",
+      "name": "YOLOv11",
+      "role": "detector",
+      "source": "ultralytics/yolo11",
+      "version": "v1",
+      "weights_path": null,
+      "installed_at": 1789023909.0167384,
+      "metrics": {},
+      "onnx_path": null
+    },
+    {
+      "model_id": "726a1e110c",
+      "name": "YOLOP",
+      "role": "segmenter",
+      "source": "hustvl/YOLOP",
+      "version": "v1",
+      "weights_path": null,
+      "installed_at": 1789023909.0169828,
+      "metrics": {},
+      "onnx_path": null
+    },
+    {
+      "model_id": "26a97500ae",
+      "name": "ByteTrack",
+      "role": "tracker",
+      "source": "ifzhang/ByteTrack",
+      "version": "v1",
+      "weights_path": null,
+      "installed_at": 1789023909.0171828,
+      "metrics": {},
+      "onnx_path": null
+    },
+    {
+      "model_id": "ab6bc6f42d",
+      "name": "SAM2",
+      "role": "segmenter",
+      "source": "facebookresearch/sam2",
+      "version": "v1",
+      "weights_path": null,
+      "installed_at": 1789023909.0173445,
+      "metrics": {},
+      "onnx_path": null
+    }
+  ],
+  "active": {
+    "detector": "2504bc9662",
+    "segmenter": "726a1e110c",
+    "tracker": "26a97500ae"
+  }
+}
